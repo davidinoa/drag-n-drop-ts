@@ -1,4 +1,20 @@
-// Validation
+// state management
+
+class ProjectState {
+  private projects: any[] = [];
+
+  addProject(title: string, description: string, numOfPeople: number) {
+    const newProject = {
+      title,
+      description,
+      people: numOfPeople,
+    };
+
+    this.projects.push(newProject);
+  }
+}
+
+// validation
 interface Validatable {
   value: string | number;
   required?: boolean;
