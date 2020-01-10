@@ -58,6 +58,12 @@ class ProjectState extends State<Project> {
     return this.instance;
   }
 
+  private updateListeners() {
+    for (const listenerFn of this.listeners) {
+      listenerFn(this.projects.slice());
+    }
+  }
+
   addProject(title: string, description: string, numOfPeople: number) {
     const newProject = new Project(
       String(Math.random()),
@@ -68,9 +74,14 @@ class ProjectState extends State<Project> {
     );
 
     this.projects.push(newProject);
+    this.updateListeners();
+  }
 
-    for (const listenerFn of this.listeners) {
-      listenerFn(this.projects.slice());
+  moveProject(projectId: string, newStatus: ProjectStatus) {
+    const project = this.projects.find(prj => prj.id === projectId);
+    if (project && project.status !== newStatus) {
+      project.status = newStatus;
+      this.updateListeners();
     }
   }
 }
@@ -291,7 +302,14 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement>
     }
   }
 
-  dropHandler(_: DragEvent) {}
+  @autobind
+  dropHandler(event: DragEvent) {
+    const prjId = event.dataTransfer!.getData('text/plain');
+    projectState.moveProject(
+      prjId,
+      this.type === 'active' ? ProjectStatus.Active : ProjectStatus.Finished
+    );
+  }
 
   configure() {
     this.element.addEventListener('dragleave', this.dragLeaveHandler);
