@@ -1,5 +1,5 @@
 //
-// ─── DRAG AND DROP INTERFACES ────────────────────────────────────────────────
+// ─── DRAG & DROP INTERFACES ────────────────────────────────────────────────
 //
 
 interface Draggable {
@@ -157,7 +157,10 @@ function autobind(_: any, __: string, descriptor: PropertyDescriptor) {
   return adjDescriptor;
 }
 
-// Component base class
+//
+// ─── COMPONENT BASE CLASS ────────────────────────────────────────────────────
+//
+
 abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   templateElement: HTMLTemplateElement;
   hostElement: T;
@@ -224,10 +227,10 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
   }
 
   @autobind
-  dragStartHandler(event: DragEvent) {}
+  dragStartHandler(_: DragEvent) {}
 
   @autobind
-  dragEndHandler(event: DragEvent) {}
+  dragEndHandler(_: DragEvent) {}
 
   configure() {
     this.element.addEventListener('dragstart', this.dragStartHandler);
@@ -241,8 +244,12 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
   }
 }
 
-// ProjectList class
-class ProjectList extends Component<HTMLDivElement, HTMLElement> {
+//
+// ─── PROJECT LIST CLASS ────────────────────────────────────────
+//
+
+class ProjectList extends Component<HTMLDivElement, HTMLElement>
+  implements DragTarget {
   assignedProjects: Project[];
 
   constructor(private type: 'active' | 'finished') {
@@ -265,7 +272,25 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> {
     }
   }
 
+  @autobind
+  dragLeaveHandler(_: DragEvent) {
+    const listEl = this.element.querySelector('ul')!;
+    listEl.classList.remove('droppable');
+  }
+
+  @autobind
+  dragOverHandler(_: DragEvent) {
+    const listEl = this.element.querySelector('ul')!;
+    listEl.classList.add('droppable');
+  }
+
+  dropHandler(_: DragEvent) {}
+
   configure() {
+    this.element.addEventListener('dragleave', this.dragLeaveHandler);
+    this.element.addEventListener('dragover', this.dragOverHandler);
+    this.element.addEventListener('drop', this.dropHandler);
+
     projectState.addListener((projects: Project[]) => {
       const relevantProjects = projects.filter(prj => {
         if (this.type === 'active') {
