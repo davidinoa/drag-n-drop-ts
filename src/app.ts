@@ -1,7 +1,6 @@
 //
 // ─── DRAG & DROP INTERFACES ────────────────────────────────────────────────
 //
-
 interface Draggable {
   dragStartHandler(event: DragEvent): void;
   dragEndHandler(event: DragEvent): void;
@@ -13,7 +12,9 @@ interface DragTarget {
   dragLeaveHandler(event: DragEvent): void;
 }
 
-// Project class
+//
+// ─── PROJECT CLASS ───────────────────────────────────────────────────────────
+//
 enum ProjectStatus {
   Active,
   Finished,
@@ -29,7 +30,9 @@ class Project {
   ) {}
 }
 
-// state management
+//
+// ─── STATE MANAGEMENT ────────────────────────────────────────────────────────
+//
 type Listener<T> = (items: T[]) => void;
 
 class State<T> {
@@ -74,7 +77,9 @@ class ProjectState extends State<Project> {
 
 const projectState = ProjectState.getInstance();
 
-// validation
+//
+// ─── VALIDATION ──────────────────────────────────────────────────────────────
+//
 interface Validatable {
   value: string | number;
   required?: boolean;
@@ -142,7 +147,6 @@ function validate(validatableInput: Validatable) {
 //
 // ─── AUTOBIND DECORATOR ──────────────────────────────────────────────────────
 //
-
 function autobind(_: any, __: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
 
@@ -160,7 +164,6 @@ function autobind(_: any, __: string, descriptor: PropertyDescriptor) {
 //
 // ─── COMPONENT BASE CLASS ────────────────────────────────────────────────────
 //
-
 abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   templateElement: HTMLTemplateElement;
   hostElement: T;
@@ -206,7 +209,6 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 //
 // ─── PROJECT ITEM CLASS ──────────────────────────────────────────────────────
 //
-
 class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
   implements Draggable {
   private project: Project;
@@ -227,7 +229,10 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
   }
 
   @autobind
-  dragStartHandler(_: DragEvent) {}
+  dragStartHandler(event: DragEvent) {
+    event.dataTransfer!.setData('text/plain', this.project.id);
+    event.dataTransfer!.effectAllowed = 'move';
+  }
 
   @autobind
   dragEndHandler(_: DragEvent) {}
@@ -245,9 +250,8 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
 }
 
 //
-// ─── PROJECT LIST CLASS ────────────────────────────────────────
+// ─── PROJECT LIST CLASS ──────────────────────────────────────────────────────
 //
-
 class ProjectList extends Component<HTMLDivElement, HTMLElement>
   implements DragTarget {
   assignedProjects: Project[];
@@ -279,9 +283,12 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement>
   }
 
   @autobind
-  dragOverHandler(_: DragEvent) {
-    const listEl = this.element.querySelector('ul')!;
-    listEl.classList.add('droppable');
+  dragOverHandler(event: DragEvent) {
+    if (event.dataTransfer && event.dataTransfer.types[0] === 'text/plain') {
+      event.preventDefault();
+      const listEl = this.element.querySelector('ul')!;
+      listEl.classList.add('droppable');
+    }
   }
 
   dropHandler(_: DragEvent) {}
@@ -312,7 +319,9 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement>
   }
 }
 
-// ProjectInput class
+//
+// ─── PROJECT INPUT CLASS ─────────────────────────────────────────────────────
+//
 class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
   titleInputElement: HTMLInputElement;
   descriptionInputElement: HTMLInputElement;
